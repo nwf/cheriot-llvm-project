@@ -585,6 +585,10 @@ defm SC_C       : AMO_C_rr_aq_rl<"128", 0b00011, 0b100, "sc.c", GPR>;
 defm AMOSWAP_C  : AMO_C_rr_aq_rl<"128", 0b00001, 0b100, "amoswap.c", GPCR>;
 }
 
+let Predicates = [HasCheri], hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+def CLoadTags : RVInstCheriSrcDst<0x7f, 0x12, 0, OPC_CHERI, (outs GPR:$rd),
+                              (ins GPCR:$cs1), "cloadtags", "$rd, $cs1">;
+
 //===----------------------------------------------------------------------===//
 // Capability Mode Instructions
 //===----------------------------------------------------------------------===//
@@ -1040,8 +1044,6 @@ def : Pat<(int_cheri_pcc_get), (CSpecialRW SCR_PCC.Encoding, C0)>;
 def : PatGpr<int_cheri_round_representable_length, CRRL>;
 def : PatGpr<int_cheri_representable_alignment_mask, CRAM>;
 
-// TODO: int_cheri_cap_load_tags
-
 /// Memory-Access with Explicit Address Type Instructions
 
 multiclass CheriExplicitLdPat<PatFrag LoadOp, RVInst Inst,
@@ -1121,6 +1123,8 @@ defm : CheriExplicitLdPat<load, LD_CAP, GPCR>;
 defm : CheriExplicitLdPat<zextloadi32, LWU_CAP, GPCR>;
 defm : CheriExplicitLdPat<load, LC_CAP_128, GPCR>;
 }
+
+def : PatGpcr<int_cheri_cap_load_tags, CLoadTags>;
 
 /// Capability stores
 
